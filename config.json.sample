@@ -1,0 +1,29 @@
+{
+  "mqtt": {
+    "url": "mqtts://localhost:8883",
+    "options": {
+      "username": "username_here",
+      "password": "password_here",
+      "reconnectPeriod": 5000,
+      "rejectUnauthorized": false
+    }
+  },
+
+  "definitions": [
+    {
+      "topic": "home/livingroom/light/switch",
+      "commands": [
+        { "value": "0", "cmdline": "/opt/ir/irkit.sh /opt/ir/light_power_off.json" },
+        { "value": "1", "cmdline": "/opt/ir/irkit.sh /opt/ir/light_power_on.json" },
+        { "value": "2", "cmdline": "/opt/ir/irkit.sh /opt/ir/light_power_full.json" }
+      ]
+    },
+    {
+      "topic": "home/raspberrypi/gpio1/value",
+      "commands": [
+        { "value": "0", "cmdline": "echo 0 > /sys/class/gpio/gpio1/value" },
+        { "value": "1", "cmdline": "echo 1 > /sys/class/gpio/gpio1/value" }
+      ]
+    }
+  ]
+}
