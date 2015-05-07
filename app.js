@@ -1,7 +1,7 @@
 'use strict';
 
 // 標準モジュール
-var child_process = require("child_process");
+var child_process = require('child_process');
 
 // モジュールのロード
 // MQTT.js : Copyright (c) 2011 Adam Rudd.
@@ -9,11 +9,11 @@ var mqtt = require('mqtt');
 
 // console の出力にタイムスタンプを付与
 // node-console-stamp : Copyright (c) 2013 Ståle Raknes
-require("console-stamp")(console, "yyyy/mm/dd HH:MM:ss.l");
+require('console-stamp')(console, 'yyyy/mm/dd HH:MM:ss.l');
 
 // コンフィグのロードとデフォルト値セット
 var config = require(__dirname + '/config.json');
-var confMqttUrl = config.mqtt.url || "mqtt://localhost:1883";
+var confMqttUrl = config.mqtt.url || 'mqtt://localhost:1883';
 var confMqttOptions = config.mqtt.options || {};
 var confDefinitions = config.definitions || [];
 
