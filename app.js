@@ -18,12 +18,30 @@ var confMqttOptions = config.mqtt.options || {};
 var confDefinitions = config.definitions || [];
 
 function executeCommand(topic, message) {
+  var messageStr = message.toString();
+
   for (var i = 0; confDefinitions.length > i; i++) {
     if (topic == confDefinitions[i].topic) {
       for(var j = 0; confDefinitions[i].commands.length > j; j++) {
-        if(message.toString() == confDefinitions[i].commands[j].value) {
-          console.log('Exec: ' + confDefinitions[i].commands[j].cmdline);
-          child_process.exec(confDefinitions[i].commands[j].cmdline);
+        var value = confDefinitions[i].commands[j].value;
+
+        var _valueRegexpMatch = value.match(new RegExp('^/(.*?)/([gimy]*)$'));
+        if (_valueRegexpMatch) {
+          var valueMatch = messageStr.match(new RegExp(_valueRegexpMatch[1], _valueRegexpMatch[2]));
+        } else {
+          var valueMatch = (messageStr == value);
+        }
+
+        if (valueMatch) {
+          topic = topic.replace(/"/g, '\\"');
+          messageStr = messageStr.replace(/"/g, '\\"');
+
+          var cmdline = confDefinitions[i].commands[j].cmdline;
+          cmdline = cmdline.replace('<topic>', topic);
+          cmdline = cmdline.replace('<value>', messageStr);
+
+          console.log('Exec: ' + cmdline);
+          child_process.exec(cmdline);
         }
       }
     }
