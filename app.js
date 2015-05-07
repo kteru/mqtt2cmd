@@ -1,29 +1,48 @@
 'use strict';
 
-// 標準モジュール
-var child_process = require("child_process");
+var child_process = require('child_process');
 
-// モジュールのロード
-// MQTT.js : Copyright (c) 2011 Adam Rudd.
+// MQTT.js
+// Copyright (c) 2011 Adam Rudd.
 var mqtt = require('mqtt');
 
-// console の出力にタイムスタンプを付与
-// node-console-stamp : Copyright (c) 2013 Ståle Raknes
-require("console-stamp")(console, "yyyy/mm/dd HH:MM:ss.l");
+// node-console-stamp
+// Copyright (c) 2013 Ståle Raknes
+require('console-stamp')(console, 'yyyy/mm/dd HH:MM:ss.l');
 
-// コンフィグのロードとデフォルト値セット
+// Load configuration
 var config = require(__dirname + '/config.json');
-var confMqttUrl = config.mqtt.url || "mqtt://localhost:1883";
+
+// Set default value
+var confMqttUrl = config.mqtt.url || 'mqtt://localhost:1883';
 var confMqttOptions = config.mqtt.options || {};
 var confDefinitions = config.definitions || [];
 
 function executeCommand(topic, message) {
+  var messageStr = message.toString();
+
   for (var i = 0; confDefinitions.length > i; i++) {
     if (topic == confDefinitions[i].topic) {
       for(var j = 0; confDefinitions[i].commands.length > j; j++) {
-        if(message.toString() == confDefinitions[i].commands[j].value) {
-          console.log('Exec: ' + confDefinitions[i].commands[j].cmdline);
-          child_process.exec(confDefinitions[i].commands[j].cmdline);
+        var value = confDefinitions[i].commands[j].value;
+
+        var _valueRegexpMatch = value.match(new RegExp('^/(.*?)/([gimy]*)$'));
+        if (_valueRegexpMatch) {
+          var valueMatch = messageStr.match(new RegExp(_valueRegexpMatch[1], _valueRegexpMatch[2]));
+        } else {
+          var valueMatch = (messageStr == value);
+        }
+
+        if (valueMatch) {
+          topic = topic.replace(/"/g, '\\"');
+          messageStr = messageStr.replace(/"/g, '\\"');
+
+          var cmdline = confDefinitions[i].commands[j].cmdline;
+          cmdline = cmdline.replace('<topic>', topic);
+          cmdline = cmdline.replace('<value>', messageStr);
+
+          console.log('Exec: ' + cmdline);
+          child_process.exec(cmdline);
         }
       }
     }
@@ -37,9 +56,9 @@ function main() {
     console.log('Connected to ' + confMqttUrl);
 
     for (var i = 0; confDefinitions.length > i; i++) {
-      // コンフィグ中のすべての Topic を Subscribe
+      // Subscribe to all topics in configuration
       mqttClient.subscribe(confDefinitions[i].topic, { qos: 2 });
-      console.log('Subscribed topic: ' + confDefinitions[i].topic);
+      console.log('Subscribed to topic: ' + confDefinitions[i].topic);
     }
   });
 
