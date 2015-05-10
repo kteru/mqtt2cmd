@@ -55,10 +55,15 @@ function main() {
   mqttClient.on('connect', function() {
     console.log('Connected to ' + confMqttUrl);
 
+    var subscribed = {};
+
     for (var i = 0; confDefinitions.length > i; i++) {
       // Subscribe to all topics in configuration
-      mqttClient.subscribe(confDefinitions[i].topic, { qos: 2 });
-      console.log('Subscribed to topic: ' + confDefinitions[i].topic);
+      if (!subscribed[confDefinitions[i].topic]) {
+        subscribed[confDefinitions[i].topic] = true;
+        mqttClient.subscribe(confDefinitions[i].topic, { qos: 2 });
+        console.log('Subscribed to topic: ' + confDefinitions[i].topic);
+      }
     }
   });
 
