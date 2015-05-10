@@ -6,6 +6,10 @@ var child_process = require('child_process');
 // Copyright (c) 2011 Adam Rudd.
 var mqtt = require('mqtt');
 
+// Moment.js
+// Copyright (c) 2011-2015 Tim Wood, Iskren Chernev, Moment.js contributors
+var moment = require('moment');
+
 // node-console-stamp
 // Copyright (c) 2013 Ståle Raknes
 require('console-stamp')(console, 'yyyy/mm/dd HH:MM:ss.l');
@@ -17,6 +21,9 @@ var config = require(__dirname + '/config.json');
 var confMqttUrl = config.mqtt.url || 'mqtt://localhost:1883';
 var confMqttOptions = config.mqtt.options || {};
 var confDefinitions = config.definitions || [];
+
+// Time to ignore new message after execute command (each definition)
+var ignoreLimit = {};
 
 function executeCommand(topic, message) {
   var messageStr = message.toString();
@@ -41,8 +48,19 @@ function executeCommand(topic, message) {
           cmdline = cmdline.replace('<topic>', topic);
           cmdline = cmdline.replace('<value>', messageStr);
 
-          console.log('Exec: ' + cmdline);
-          child_process.exec(cmdline);
+          var now = moment();
+
+          if (now.isAfter(ignoreLimit[i])) {
+            // Update time
+            if (confDefinitions[i].commands[j].ignoreAfterExec) {
+              ignoreLimit[i] = now.add(confDefinitions[i].commands[j].ignoreAfterExec, 'seconds');
+            } else {
+              ignoreLimit[i] = now;
+            }
+
+            console.log('Exec: ' + cmdline);
+            child_process.exec(cmdline);
+          }
         }
       }
     }
@@ -55,10 +73,18 @@ function main() {
   mqttClient.on('connect', function() {
     console.log('Connected to ' + confMqttUrl);
 
+    var subscribed = {};
+
     for (var i = 0; confDefinitions.length > i; i++) {
+      // Set the current time
+      if (!ignoreLimit[i]) ignoreLimit[i] = moment();
+
       // Subscribe to all topics in configuration
-      mqttClient.subscribe(confDefinitions[i].topic, { qos: 2 });
-      console.log('Subscribed to topic: ' + confDefinitions[i].topic);
+      if (!subscribed[confDefinitions[i].topic]) {
+        subscribed[confDefinitions[i].topic] = true;
+        mqttClient.subscribe(confDefinitions[i].topic, { qos: 2 });
+        console.log('Subscribed to topic: ' + confDefinitions[i].topic);
+      }
     }
   });
 
