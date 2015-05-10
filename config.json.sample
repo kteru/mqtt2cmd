@@ -21,8 +21,8 @@
     {
       "topic": "home/raspberrypi/gpio1/value",
       "commands": [
-        { "value": "0", "cmdline": "echo 0 > /sys/class/gpio/gpio1/value" },
-        { "value": "1", "cmdline": "echo 1 > /sys/class/gpio/gpio1/value" }
+        { "value": "0", "ignoreAfterExec": 3, "cmdline": "echo 0 > /sys/class/gpio/gpio1/value" },
+        { "value": "1", "ignoreAfterExec": 3, "cmdline": "echo 1 > /sys/class/gpio/gpio1/value" }
       ]
     },
     {
