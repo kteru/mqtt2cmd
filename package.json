@@ -1,7 +1,7 @@
 {
   "name": "mqtt2cmd",
   "description": "Subscribe to MQTT Topic, and execute a command.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "dependencies": {
     "mqtt": "1.1.x",
