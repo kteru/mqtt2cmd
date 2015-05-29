@@ -1,6 +1,9 @@
 {
   "mqtt": {
     "url": "mqtts://localhost:8883",
+    "tlsKeyPath": "client.key",
+    "tlsCertPath": "client.crt",
+    "tlsCaPaths": [ "ca.crt" ],
     "options": {
       "username": "username_here",
       "password": "password_here",
