@@ -52,6 +52,9 @@ function executeCommand(topic, message) {
           cmdline = cmdline.replace('<topic>', topic);
           cmdline = cmdline.replace('<value>', messageStr);
 
+          // Set unixtime 0 if not exists
+          if (!ignoreLimit[i]) ignoreLimit[i] = moment(0);
+
           var now = moment();
 
           if (now.isAfter(ignoreLimit[i])) {
@@ -91,9 +94,6 @@ function main() {
     var subscribed = {};
 
     for (var i = 0; confDefinitions.length > i; i++) {
-      // Set the current time
-      if (!ignoreLimit[i]) ignoreLimit[i] = moment();
-
       // Subscribe to all topics in configuration
       if (!subscribed[confDefinitions[i].topic]) {
         subscribed[confDefinitions[i].topic] = true;
