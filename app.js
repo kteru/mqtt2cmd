@@ -1,5 +1,6 @@
 'use strict';
 
+var fs = require('fs');
 var child_process = require('child_process');
 
 // MQTT.js
@@ -19,6 +20,9 @@ var config = require(__dirname + '/config.json');
 
 // Set default value
 var confMqttUrl = config.mqtt.url || 'mqtt://localhost:1883';
+var confMqttTlsKeyPath = config.mqtt.tlsKeyPath || null;
+var confMqttTlsCertPath = config.mqtt.tlsCertPath || null;
+var confMqttTlsCaPaths = config.mqtt.tlsCaPaths || [];
 var confMqttOptions = config.mqtt.options || {};
 var confDefinitions = config.definitions || [];
 
@@ -68,6 +72,17 @@ function executeCommand(topic, message) {
 }
 
 function main() {
+  // Append `tls.connect` options
+  if (confMqttTlsKeyPath && confMqttTlsCertPath) {
+    confMqttOptions.key = fs.readFileSync(confMqttTlsKeyPath);
+    confMqttOptions.cert = fs.readFileSync(confMqttTlsCertPath);
+
+    confMqttOptions.ca = [];
+    confMqttTlsCaPaths.forEach(function(caPath) {
+      confMqttOptions.ca.push(fs.readFileSync(caPath));
+    });
+  }
+
   var mqttClient = mqtt.connect(confMqttUrl, confMqttOptions);
 
   mqttClient.on('connect', function() {
